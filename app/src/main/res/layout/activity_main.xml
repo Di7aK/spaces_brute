@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/content_padding"
+    tools:context=".ui.MainActivity">
+
+    <EditText
+        android:id="@+id/startFrom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/start_from_id"
+        android:importantForAutofill="no"
+        android:inputType="numberSigned"
+        tools:ignore="LabelFor" />
+
+    <EditText
+        android:id="@+id/passwords"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="top"
+        android:layout_below="@id/startFrom"
+        android:hint="@string/passwords_label"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/proxy"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="top"
+        android:layout_below="@id/passwords"
+        android:hint="@string/proxy"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/results"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="top"
+        android:layout_below="@id/proxy"
+        android:hint="@string/results"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        tools:ignore="LabelFor,TextFields" />
+
+    <Button
+        android:id="@+id/btnStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/results"
+        android:text="@string/begin" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_below="@id/btnStart"
+        android:layout_alignParentBottom="true"
+        android:layout_height="0dp">
+
+        <TextView
+            android:id="@+id/log"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </androidx.core.widget.NestedScrollView>
+
+</RelativeLayout>

@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">СРАКАБРУТ</string>
+    <string name="permissions_required">Ну и сасай</string>
+    <string name="start_from_id">Начать с ID</string>
+    <string name="begin">Начать</string>
+    <string name="passwords_label">password1\npassword2\n…</string>
+    <string name="stopped">Остановка</string>
+    <string name="start">Запуск</string>
+    <string name="current_user">Текущий логин: %1$s</string>
+    <string name="stop">Остановить</string>
+    <string name="results">Результаты</string>
+    <string name="wrong_password">%1$s: неверный пароль</string>
+    <string name="wrong_captcha">%1$s: неправильный код с картинки</string>
+    <string name="need_captcha">%1$s: требуется код с картинки</string>
+    <string name="user_not_found">%1$s: пользователь не найден</string>
+    <string name="unknown_error">%1$s: неизвестная ошибка</string>
+    <string name="proxy">прокси</string>
+    <string name="proxy_wait">Ожидание прокси %1$d сек</string>
+</resources>
