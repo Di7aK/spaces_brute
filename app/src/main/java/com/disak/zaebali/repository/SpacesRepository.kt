@@ -2,6 +2,7 @@ package com.disak.zaebali.repository
 
 import com.disak.zaebali.models.Result
 import androidx.lifecycle.MutableLiveData
+import com.disak.zaebali.models.ProxyItem
 import com.disak.zaebali.net.SpacesDataSource
 import com.disak.zaebali.vo.Auth
 import com.disak.zaebali.vo.User
@@ -26,6 +27,7 @@ class SpacesRepository {
 
     fun create(proxyHost: String, proxyPort: Int) {
         spacesDataSource = SpacesDataSource.newInstance(proxyHost, proxyPort)
+        spacesDataSource.proxy = ProxyItem(proxyHost, proxyPort)
     }
 
     companion object {

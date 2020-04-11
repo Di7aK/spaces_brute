@@ -2,11 +2,9 @@ package com.disak.zaebali.ui
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.disak.zaebali.CAPTCHA_TIMEOUT
-import com.disak.zaebali.R
-import com.disak.zaebali.models.ProxyItem
+import com.disak.zaebali.net.ProxyProcessor
 import com.disak.zaebali.repository.SpacesRepository
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -21,10 +19,8 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
     val log: LiveData<String> = _log
     val isProgress = MutableLiveData<Boolean>()
 
-    var passwords: Array<String> = arrayOf()
+    var passwords = mutableListOf<String>()
     private var currentPassword = 0
-    var proxy: MutableList<ProxyItem> = mutableListOf()
-    private var currentProxy = 0
     var login = ""
 
     private fun getUserById(userId: Int) {
@@ -35,42 +31,31 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun parseProxy(proxyString: String) {
-        val proxyList = proxyString.split("\n")
-        proxyList.forEach {
-            ProxyItem.parse(it)?.let { proxyItem -> proxy.add(proxyItem) }
-        }
-    }
-
     fun nextProxy() {
-        getCurrentProxyItem().lastUsed = System.currentTimeMillis()
+        viewModelScope.launch(Dispatchers.IO) {
+            ProxyProcessor.changeIp()
 
-        val proxy = getNextProxyItem()
-
-        val await = proxy.lastUsed + CAPTCHA_TIMEOUT - System.currentTimeMillis()
-        if(await > 0) {
-            viewModelScope.launch {
-                _log.postValue(app.applicationContext.getString(R.string.proxy_wait, await / 1000))
-                delay(await)
-                if(isProgress.value == true) {
-                    spacesRepository.create(proxy.host, proxy.port)
-                    beginUser()
-                }
-            }
-        } else {
-            spacesRepository.create(proxy.host, proxy.port)
             beginUser()
         }
     }
 
-    private fun getCurrentProxyItem() : ProxyItem {
-        return proxy[currentProxy]
+    private var loginPasswordIndex = -1
+
+    fun addLoginPassword() {
+        val segments = login.split("_")
+        loginPasswordIndex = passwords.size
+        if(segments.size == 3) {
+            passwords.add(segments[2])
+        } else {
+            passwords.add(segments[0])
+        }
     }
 
-    private fun getNextProxyItem() : ProxyItem {
-        currentProxy ++
-        currentProxy %= proxy.size
-        return proxy[currentProxy]
+    fun removeLoginPassword() {
+        if(loginPasswordIndex != -1) {
+            passwords.removeAt(loginPasswordIndex)
+            loginPasswordIndex = -1
+        }
     }
 
     private fun login(login: String, password: String) {

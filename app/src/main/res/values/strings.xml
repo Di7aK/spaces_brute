@@ -16,4 +16,7 @@
     <string name="unknown_error">%1$s: неизвестная ошибка</string>
     <string name="proxy">прокси</string>
     <string name="proxy_wait">Ожидание прокси %1$d сек</string>
+    <string name="login_pass">Логин=пароль</string>
+    <string name="passwords">загрузить пароли (%1$d)</string>
+    <string name="save_to">Сохранить в</string>
 </resources>

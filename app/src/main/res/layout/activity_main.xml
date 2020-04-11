@@ -16,40 +16,32 @@
         android:inputType="numberSigned"
         tools:ignore="LabelFor" />
 
-    <EditText
+    <Button
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:id="@+id/passwords"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:gravity="top"
+        android:layout_height="wrap_content"
+        android:text="@string/passwords"
         android:layout_below="@id/startFrom"
-        android:hint="@string/passwords_label"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine"
         tools:ignore="LabelFor,TextFields" />
 
-    <EditText
-        android:id="@+id/proxy"
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/loginPassword"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:gravity="top"
+        android:layout_height="wrap_content"
         android:layout_below="@id/passwords"
-        android:hint="@string/proxy"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine"
-        tools:ignore="LabelFor,TextFields" />
-
-    <EditText
-        android:id="@+id/results"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:gravity="top"
-        android:layout_below="@id/proxy"
-        android:hint="@string/results"
-        android:importantForAutofill="no"
-        android:inputType="textMultiLine"
-        tools:ignore="LabelFor,TextFields" />
+        android:text="@string/login_pass"/>
 
     <Button
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:id="@+id/results"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/save_to"
+        android:layout_below="@id/loginPassword" />
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:id="@+id/btnStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

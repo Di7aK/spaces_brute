@@ -33,11 +33,11 @@ interface SpacesApiService {
             builder.sslSocketFactory(sslSocketFactory, trustManager[0] as X509TrustManager)
             builder.hostnameVerifier { _, _ -> true }
 
-            val proxy = Proxy(Proxy.Type.SOCKS,  InetSocketAddress(proxyHost, proxyPort))
+            val proxy = Proxy(Proxy.Type.HTTP,  InetSocketAddress(proxyHost, proxyPort))
 
-            httpClient.writeTimeout(PROXY_TIMEOUT, TimeUnit.SECONDS)
-            httpClient.connectTimeout(PROXY_TIMEOUT, TimeUnit.SECONDS)
-            httpClient.readTimeout(PROXY_TIMEOUT, TimeUnit.SECONDS)
+            httpClient.writeTimeout(PROXY_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            httpClient.connectTimeout(PROXY_TIMEOUT.toLong(), TimeUnit.SECONDS)
+            httpClient.readTimeout(PROXY_TIMEOUT.toLong(), TimeUnit.SECONDS)
             if(proxyHost.isNotEmpty()) httpClient.proxy(proxy)
 
             val gson = GsonBuilder()
