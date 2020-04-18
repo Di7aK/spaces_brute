@@ -1,7 +1,5 @@
 package com.disak.zaebali.net;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;

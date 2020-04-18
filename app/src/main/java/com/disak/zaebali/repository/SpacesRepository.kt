@@ -2,7 +2,6 @@ package com.disak.zaebali.repository
 
 import com.disak.zaebali.models.Result
 import androidx.lifecycle.MutableLiveData
-import com.disak.zaebali.models.ProxyItem
 import com.disak.zaebali.net.SpacesDataSource
 import com.disak.zaebali.vo.Auth
 import com.disak.zaebali.vo.User
@@ -10,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class SpacesRepository {
-    private var spacesDataSource: SpacesDataSource = SpacesDataSource.newInstance("", 0)
+    private var spacesDataSource: SpacesDataSource = SpacesDataSource.newInstance()
 
     val userLiveData = MutableLiveData<Result<User>>()
     val authLiveData = MutableLiveData<Result<Auth>>()
@@ -23,11 +22,6 @@ class SpacesRepository {
     suspend fun login(login: String, password: String) = withContext(Dispatchers.IO) {
         val result = spacesDataSource.auth(login, password)
         authLiveData.postValue(result)
-    }
-
-    fun create(proxyHost: String, proxyPort: Int) {
-        spacesDataSource = SpacesDataSource.newInstance(proxyHost, proxyPort)
-        spacesDataSource.proxy = ProxyItem(proxyHost, proxyPort)
     }
 
     companion object {

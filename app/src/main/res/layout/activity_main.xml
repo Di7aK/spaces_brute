@@ -9,7 +9,7 @@
 
     <EditText
         android:id="@+id/startFrom"
-        android:layout_width="match_parent"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:hint="@string/start_from_id"
         android:importantForAutofill="no"
@@ -18,19 +18,36 @@
 
     <Button
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:id="@+id/customLogin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/load_login"
+        android:layout_toEndOf="@id/startFrom"
+        tools:ignore="LabelFor,TextFields" />
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:id="@+id/passwords"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/passwords"
-        android:layout_below="@id/startFrom"
+        android:layout_below="@id/loginPassword"
         tools:ignore="LabelFor,TextFields" />
 
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/loginPassword"
-        android:layout_width="match_parent"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/passwords"
+        android:layout_below="@id/startFrom"
         android:text="@string/login_pass"/>
+
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/loginPasswordLower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/startFrom"
+        android:layout_toEndOf="@id/loginPassword"
+        android:text="@string/login_pass_lower"/>
 
     <Button
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
@@ -38,10 +55,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/save_to"
-        android:layout_below="@id/loginPassword" />
+        android:layout_below="@id/passwords" />
 
     <Button
-        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        style="@style/Widget.AppCompat.Button.Colored"
         android:id="@+id/btnStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
