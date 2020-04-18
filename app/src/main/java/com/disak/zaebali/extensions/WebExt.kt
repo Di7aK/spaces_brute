@@ -1,4 +1,4 @@
-package com.disak.zaebali.utils
+package com.disak.zaebali.extensions
 
 import android.content.Context
 import android.content.Intent

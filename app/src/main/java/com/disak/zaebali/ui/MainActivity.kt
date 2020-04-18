@@ -10,11 +10,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.disak.zaebali.LOG_SIZE
 import com.disak.zaebali.R
-import com.disak.zaebali.extensions.toast
 import com.disak.zaebali.utils.FilePicker
 import com.disak.zaebali.utils.PermissionChecker
 import com.disak.zaebali.utils.TorProgressTask
-import com.disak.zaebali.utils.openAsWeb
+import com.disak.zaebali.extensions.openAsWeb
 import com.jaiselrahman.filepicker.model.MediaFile
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
@@ -180,7 +179,7 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
     }
 
     override fun onResult(granted: Boolean) {
-        if (!granted) toast(R.string.permissions_required)
+        if (!granted) log(getString(R.string.permissions_required))
     }
 
     private fun log(message: String) {
