@@ -18,7 +18,7 @@ import cz.msebera.android.httpclient.impl.client.HttpClients;
 import cz.msebera.android.httpclient.impl.conn.PoolingHttpClientConnectionManager;
 import cz.msebera.android.httpclient.ssl.SSLContexts;
 
-import static com.disak.zaebali.App.onionProxyManager;
+import static com.disak.zaebali.BruteAppKt.onionProxyManager;
 
 public class ProxyProcessor {
 

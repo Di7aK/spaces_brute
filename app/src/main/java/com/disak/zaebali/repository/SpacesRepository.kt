@@ -1,40 +1,16 @@
 package com.disak.zaebali.repository
 
-import com.disak.zaebali.models.Result
-import androidx.lifecycle.MutableLiveData
-import com.disak.zaebali.net.SpacesDataSource
-import com.disak.zaebali.vo.Auth
-import com.disak.zaebali.vo.User
+import com.disak.zaebali.repository.datasource.SpacesDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class SpacesRepository {
-    private var spacesDataSource: SpacesDataSource = SpacesDataSource.newInstance()
-
-    val userLiveData = MutableLiveData<Result<User>>()
-    val authLiveData = MutableLiveData<Result<Auth>>()
+class SpacesRepository(private var spacesDataSource: SpacesDataSource) {
 
     suspend fun getUserById(userId: Int) = withContext(Dispatchers.IO) {
-        val result = spacesDataSource.getUserById(userId)
-        userLiveData.postValue(result)
+        spacesDataSource.getUserById(userId)
     }
 
     suspend fun login(login: String, password: String) = withContext(Dispatchers.IO) {
-        val result = spacesDataSource.auth(login, password)
-        authLiveData.postValue(result)
-    }
-
-    companion object {
-        private var INSTANCE: SpacesRepository? = null
-
-        @JvmStatic
-        fun getInstance(): SpacesRepository {
-            return INSTANCE ?: SpacesRepository().apply { INSTANCE = this }
-        }
-
-        @JvmStatic
-        fun destroyInstance() {
-            INSTANCE = null
-        }
+        spacesDataSource.auth(login, password)
     }
 }

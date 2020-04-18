@@ -10,7 +10,7 @@ import com.disak.zaebali.ui.MainActivity;
 
 import java.io.IOException;
 
-import static com.disak.zaebali.App.onionProxyManager;
+import static com.disak.zaebali.BruteAppKt.onionProxyManager;
 
 public class TorProgressTask extends AsyncTask<String, String, Boolean> {
     private static final String TAG = "lol";
@@ -54,8 +54,6 @@ public class TorProgressTask extends AsyncTask<String, String, Boolean> {
             AlertDialog alert11 = builder1.create();
             alert11.show();
         }
-
-        Log.d("lol", "kek");
 
         if (activity.isDestroyed()) {
             return;

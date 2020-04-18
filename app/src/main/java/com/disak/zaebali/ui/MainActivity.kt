@@ -2,25 +2,20 @@ package com.disak.zaebali.ui
 
 import android.Manifest
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.disak.zaebali.LOG_SIZE
 import com.disak.zaebali.R
 import com.disak.zaebali.extensions.toast
-import com.disak.zaebali.models.Result
-import com.disak.zaebali.net.*
-import com.disak.zaebali.repository.ResourceProvider
 import com.disak.zaebali.utils.FilePicker
 import com.disak.zaebali.utils.PermissionChecker
 import com.disak.zaebali.utils.TorProgressTask
 import com.jaiselrahman.filepicker.model.MediaFile
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 val REQUIRED_PERMISSIONS =
     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -28,16 +23,11 @@ val REQUIRED_PERMISSIONS =
 class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerListener {
     private val permissionChecker = PermissionChecker(this, this)
     private val filePicker = FilePicker()
-    private lateinit var mainViewModel: MainViewModel
+    private val mainViewModel by viewModel<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        mainViewModel =
-            ViewModelProvider(this, MainViewModel.FACTORY.invoke(ResourceProvider(this))).get(
-                MainViewModel::class.java
-            )
 
         subscribeLiveData()
 
@@ -90,6 +80,7 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
             filePicker.pickFile(this, object : FilePicker.FilePickerListener {
                 override fun onFilePick(file: MediaFile) {
                     mainViewModel.targetName = file.name
+                    mainViewModel.target = file.uri.toString()
 
                     updateResultButton()
                 }
@@ -99,6 +90,7 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
         updateCustomLoginButton()
         updatePasswordsButton()
         updateResultButton()
+        updateState()
 
         TorProgressTask(this@MainActivity).execute()
     }
@@ -127,19 +119,10 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
 
     private fun begin() {
         val from = startFrom.text.toString().toIntOrNull() ?: 1
+        mainViewModel.passwordEqualLogin = loginPassword.isChecked
+        mainViewModel.passwordEqualLoginLower = loginPasswordLower.isChecked
 
         mainViewModel.begin(from)
-        log(getString(R.string.start))
-    }
-
-    private fun putResults(login: String, password: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            mainViewModel.targetName?.let { targetName ->
-                val uri = Uri.parse(targetName)
-                val stream = contentResolver.openOutputStream(uri, "wa")
-                stream?.use { it.write("$login:$password\n".toByteArray()) }
-            }
-        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -150,7 +133,6 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
 
     private fun stop() {
         mainViewModel.stop()
-        log(getString(R.string.stopped))
     }
 
     private fun subscribeLiveData() {
@@ -163,65 +145,6 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
             startFrom.setText(it.toString())
         })
 
-        mainViewModel.userLiveData.observe(this, Observer {
-            when (it) {
-                is Result.Success -> {
-                    if (it.data.ownerName != null) {
-                        mainViewModel.login = it.data.ownerName
-                        mainViewModel.removeLoginPassword()
-                        if (loginPassword.isChecked) {
-                            mainViewModel.addLoginPassword(false)
-                        }
-                        if (loginPasswordLower.isChecked) {
-                            mainViewModel.addLoginPassword(true)
-                        }
-                        log(getString(R.string.current_user, it.data.ownerName))
-                        mainViewModel.beginUser()
-                    } else mainViewModel.nextUser()
-                }
-                else -> mainViewModel.nextUser()
-            }
-        })
-
-        mainViewModel.authLiveData.observe(this, Observer {
-            when (it) {
-                is Result.Success -> {
-                    when (it.data.code) {
-                        CODE_SUCCESS -> {
-                            log(getString(R.string.success, it.data.password))
-                            putResults(it.data.login, it.data.password)
-                            mainViewModel.nextUser()
-                        }
-                        CODE_WRONG_LOGIN_OR_PASSWORD -> {
-                            log(getString(R.string.wrong_password, it.data.password))
-                            mainViewModel.nextPassword()
-                        }
-                        CODE_ERR_WRONG_CAPTCHA_CODE -> {
-                            log(getString(R.string.wrong_captcha, it.data.password))
-                            mainViewModel.nextProxy()
-                        }
-                        CODE_ERR_NEED_CAPTCHA -> {
-                            log(getString(R.string.need_captcha, it.data.password))
-                            mainViewModel.nextProxy()
-                        }
-                        CODE_ERR_USER_NOT_FOUND -> {
-                            log(getString(R.string.user_not_found, it.data.password))
-                            mainViewModel.nextUser()
-                        }
-                        else -> {
-                            log(getString(R.string.unknown_error, it.data.password))
-                            mainViewModel.nextUser()
-                        }
-                    }
-                }
-
-                is Result.Error -> {
-                    log(it.exception.message ?: it.toString())
-                    mainViewModel.nextProxy()
-                }
-            }
-        })
-
         mainViewModel.log.observe(this, Observer {
             log(it)
         })
@@ -229,6 +152,18 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
         mainViewModel.isProgress.observe(this, Observer {
             updateButton()
         })
+
+        mainViewModel.checked.observe(this, Observer {
+            updateState()
+        })
+
+        mainViewModel.success.observe(this, Observer {
+            updateState()
+        })
+    }
+
+    private fun updateState() {
+        state.text = getString(R.string.state, mainViewModel.checked.value, mainViewModel.success.value)
     }
 
     override fun onResult(granted: Boolean) {

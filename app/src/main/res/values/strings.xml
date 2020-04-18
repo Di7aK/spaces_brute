@@ -25,4 +25,5 @@
     <string name="login_pass_lower">Пароль=логин.toLower</string>
     <string name="need_passwords">Нет паролей</string>
     <string name="target_not_set">Не задан путь сохранения</string>
+    <string name="state">Проверено: %1$d подобрано: %2$d</string>
 </resources>

