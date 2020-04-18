@@ -26,4 +26,7 @@
     <string name="need_passwords">Нет паролей</string>
     <string name="target_not_set">Не задан путь сохранения</string>
     <string name="state">Проверено: %1$d подобрано: %2$d</string>
+
+    <string name="source">Source</string>
+    <string name="source_url">https://github.com/Di7aK/spaces_brute</string>
 </resources>

@@ -3,6 +3,8 @@ package com.disak.zaebali.ui
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +14,7 @@ import com.disak.zaebali.extensions.toast
 import com.disak.zaebali.utils.FilePicker
 import com.disak.zaebali.utils.PermissionChecker
 import com.disak.zaebali.utils.TorProgressTask
+import com.disak.zaebali.utils.openAsWeb
 import com.jaiselrahman.filepicker.model.MediaFile
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.launch
@@ -93,6 +96,16 @@ class MainActivity : AppCompatActivity(), PermissionChecker.PermissionCheckerLis
         updateState()
 
         TorProgressTask(this@MainActivity).execute()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if(item.itemId == R.id.menu_github) getString(R.string.source_url).openAsWeb(this)
+        return super.onOptionsItemSelected(item)
     }
 
     private fun updateCustomLoginButton() {
